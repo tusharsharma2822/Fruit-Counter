@@ -1,31 +1,23 @@
-# Multi-stage Dockerfile (build & run backend). Frontend is kept as static file in the image.
-FROM node:18-alpine AS build
+# Multi-stage Dockerfile for project root (server.js, index.html and package.json at repo root)
+FROM node:18-alpine AS builder
+WORKDIR /app
 
-WORKDIR /app/backend
+# Copy package files and install production deps
+COPY package*.json ./
+RUN npm ci --only=production
 
-# Install dependencies (copy package files from backend)
-COPY backend/package*.json ./
-RUN npm install --production
+# Copy full project into image
+COPY . .
 
-# Copy backend source
-COPY backend/ ./
-
-# Copy top-level frontend file(s) so they're available in the image (optional)
-# adjust path if your frontend lives in a different location
-COPY index.html ../frontend/index.html
-
-# Final runtime image (smaller)
+# Final runtime image
 FROM node:18-alpine AS runtime
-WORKDIR /app/backend
+WORKDIR /app
 
-# Copy installed deps and app code from builder
-COPY --from=build /app/backend /app/backend
-# copy frontend files (optional)
-COPY --from=build /app/frontend /app/frontend
+# Copy built app
+COPY --from=builder /app /app
 
 ENV NODE_ENV=production
 EXPOSE 4000
 
-# Ensure working dir is backend and run server
-WORKDIR /app/backend
+# Ensure package.json has "type": "module" if server uses ES modules.
 CMD ["node", "server.js"]
