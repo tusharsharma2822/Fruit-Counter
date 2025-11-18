@@ -1,5 +1,5 @@
 # Multi-stage Dockerfile for project root (server.js, index.html and package.json at repo root)
-FROM node:18-alpine AS builder
+FROM openshift/node:18-minimal-ubi8 AS builder
 WORKDIR /app
 
 # Copy package files and install production deps
