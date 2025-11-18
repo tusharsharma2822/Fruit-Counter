@@ -10,7 +10,7 @@ RUN npm ci --only=production
 COPY . .
 
 # Final runtime image
-FROM node:18-alpine AS runtime
+FROM openshift/node:18-minimal-ubi8 AS runtime
 WORKDIR /app
 
 # Copy built app
